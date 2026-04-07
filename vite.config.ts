@@ -4,33 +4,20 @@ import { defineConfig, loadEnv } from 'vite'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const footballDataTarget = env.FOOTBALL_DATA_API_URL || 'https://api.football-data.org'
-  const footballDataToken = env.FOOTBALL_DATA_TOKEN
-  const proxy = {
-    '/api/football-data': {
-      target: footballDataTarget,
-      changeOrigin: true,
-      rewrite: (proxyPath: string) => proxyPath.replace(/^\/api\/football-data/, ''),
-      headers: footballDataToken
-        ? {
-            'X-Auth-Token': footballDataToken,
-          }
-        : undefined,
-    },
-  }
+  const footballDataApiUrl =
+    env.FOOTBALL_DATA_API_URL?.trim() || 'https://linguics.pro/api/football-data'
 
   return {
+    define: {
+      __APP_CONFIG__: JSON.stringify({
+        apiBaseUrl: footballDataApiUrl,
+      }),
+    },
     plugins: [react()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
       },
-    },
-    server: {
-      proxy,
-    },
-    preview: {
-      proxy,
     },
   }
 })

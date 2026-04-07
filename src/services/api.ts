@@ -1,9 +1,11 @@
-import { appConfig, shouldAttachClientToken } from '@/services/config'
+import { appConfig } from '@/services/config'
 
 interface ApiErrorPayload {
   error?: string
   message?: string
 }
+
+type QueryParams = Record<string, string | number | undefined>
 
 export class ApiError extends Error {
   status: number
@@ -15,11 +17,8 @@ export class ApiError extends Error {
   }
 }
 
-function getRequestUrl(path: string, query?: Record<string, string | number | undefined>) {
-  const normalizedBase = appConfig.apiBaseUrl.replace(/\/$/, '')
-  const url = /^https?:\/\//.test(normalizedBase)
-    ? new URL(`${normalizedBase}${path}`)
-    : new URL(`${normalizedBase}${path}`, window.location.origin)
+function createFootballDataUrl(path: string, query?: QueryParams) {
+  const url = new URL(`${appConfig.footballDataApiUrl}${path}`)
 
   if (!query) {
     return url
@@ -34,6 +33,12 @@ function getRequestUrl(path: string, query?: Record<string, string | number | un
   }
 
   return url
+}
+
+function createFootballDataHeaders() {
+  return new Headers({
+    Accept: 'application/json',
+  })
 }
 
 function normalizeApiMessage(status: number, payload?: ApiErrorPayload) {
@@ -55,19 +60,10 @@ function normalizeApiMessage(status: number, payload?: ApiErrorPayload) {
   return sourceMessage || 'Не удалось получить данные.'
 }
 
-export async function fetchJson<T>(
-  path: string,
-  query?: Record<string, string | number | undefined>,
-): Promise<T> {
-  const headers = new Headers({
-    Accept: 'application/json',
+export async function fetchJson<T>(path: string, query?: QueryParams): Promise<T> {
+  const response = await fetch(createFootballDataUrl(path, query), {
+    headers: createFootballDataHeaders(),
   })
-
-  if (shouldAttachClientToken()) {
-    headers.set('X-Auth-Token', appConfig.clientToken)
-  }
-
-  const response = await fetch(getRequestUrl(path, query), { headers })
   const contentType = response.headers.get('content-type') || ''
   const payload = contentType.includes('application/json')
     ? ((await response.json()) as T | ApiErrorPayload)
