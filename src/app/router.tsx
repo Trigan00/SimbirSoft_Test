@@ -1,6 +1,6 @@
 import { CircularProgress, Stack } from '@mui/material'
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from '@/components/layout/AppShell'
 
 const LeaguesPage = lazy(() =>
@@ -28,7 +28,7 @@ function RouterFallback() {
 
 export function AppRouter() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Suspense fallback={<RouterFallback />}>
         <Routes>
           <Route element={<AppShell />}>
@@ -41,6 +41,6 @@ export function AppRouter() {
           </Route>
         </Routes>
       </Suspense>
-    </BrowserRouter>
+    </HashRouter>
   )
 }
